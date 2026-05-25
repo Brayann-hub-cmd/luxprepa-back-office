@@ -31,7 +31,7 @@ export const getImageUrl = (path: string | null | undefined): string | null => {
     // URL absolue (déjà complète)
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
     // Chemin relatif -> on préfixe
-    return `http://127.0.0.1:8000/api${path.startsWith('/') ? '' : '/'}${path}`;
+    return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
 const AnnonceCard: React.FC<AnnonceCardProps> = ({ annonce, onDetail, onEdit, onDelete }) => {
