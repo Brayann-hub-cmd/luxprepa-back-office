@@ -52,7 +52,7 @@ const ListeMatieres: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">📚 Matières</h1>
+        <h1 className="text-3xl font-bold"> Matières</h1>
         <button className="btn btn-primary gap-2" onClick={() => setShowForm(true)}>
           <FiPlus /> Nouvelle matière
         </button>

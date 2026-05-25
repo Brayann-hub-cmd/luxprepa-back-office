@@ -28,6 +28,17 @@ export interface Eleve extends User {
     niveau?:string
 }
 
+export interface Users {
+  id: string;
+  nom: string;
+  prenom: string;
+  telephone: string;
+  role: "eleve" | "prof" | "admin";
+  specialite?: string; // seulement pour prof
+  created_at?: string;
+}
+
+
 // ── Concours ──
 export interface Concours {
     id: string
@@ -734,33 +745,58 @@ export const activiteApi = {
 // ═══════════════════════════════════════════════════════════
 // EXEMPLES D'UTILISATION
 // ═══════════════════════════════════════════════════════════
-
-/*
-
-// ── INSCRIPTION EN 2 ÉTAPES ──
-await authApi.preInscription({ nom: "Kamga", prenom: "Brayann", telephone: "690000000", password: "monpass", role: "eleve" })
-const rep = await authApi.confirmer({ telephone: "690000000", code: "123456" })
-console.log(rep.user.nom) // connecté directement
-
-// ── CONNEXION ──
-const rep = await authApi.connexion({ telephone: "690000000", password: "monpass" })
-
-// ── MOT DE PASSE OUBLIÉ ──
-await authApi.motDePasseOublie("690000000")
-const { reset_token } = await authApi.verifierCodeReset({ telephone: "690000000", code: "123456" })
-await authApi.nouveauPassword({ telephone: "690000000", reset_token, nouveau_password: "newpass", confirmer_password: "newpass" })
-
-// ── CHANGER MOT DE PASSE ──
-await authApi.changerPassword({ ancien_password: "old", nouveau_password: "new", confirmer_password: "new" })
-
-// ── CONCOURS ──
-const concours = await concoursApi.liste()
-const detail = await concoursApi.detail("uuid")
-
-// ── NOTE ──
-await noteApi.affecter({ eleve_id: "uuid", prof_id: "uuid", session_id: "uuid", matiere_concours_id: "uuid", valeur: 14.5 })
-
-// ── PAIEMENT ──
-await paiementApi.verser({ inscription_id: "uuid", montant: 50000 })
-
-*/
+export const userApi = {
+  liste: async (): Promise<Users[]> => {
+    const token = tokenUtils.recuperer();
+    const response = await fetch(`${BASE_URL}/users/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse<Users[]>(response);
+  },
+  create: async (data: {
+    nom: string;
+    prenom: string;
+    telephone: string;
+    role: string;
+    specialite?: string;
+    password: string;
+  }): Promise<{ user: Users }> => {
+    const token = tokenUtils.recuperer();
+    const response = await fetch(`${BASE_URL}/users/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ user: Users }>(response);
+  },
+  update: async (id: string, data: {
+    nom?: string;
+    prenom?: string;
+    telephone?: string;
+    role?: string;
+    specialite?: string;
+    password?: string;
+  }): Promise<{ user: Users }> => {
+    const token = tokenUtils.recuperer();
+    const response = await fetch(`${BASE_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ user: Users }>(response);
+  },
+  delete: async (id: string): Promise<{ message: string }> => {
+    const token = tokenUtils.recuperer();
+    const response = await fetch(`${BASE_URL}/users/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
