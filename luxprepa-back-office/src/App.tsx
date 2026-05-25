@@ -1,6 +1,7 @@
 import ProtectedRoute from "./components/auth/Protectedroute ";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import Login from "./components/auth/login";
+import { Navigate } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 function App() {
   return (
@@ -17,6 +18,11 @@ function App() {
               <AdminDashboard />
             </ProtectedRoute>
           }
+        />
+
+        <Route
+          path="*"
+          element={<Navigate to="/admin" replace />}
         />
       </Routes>
     </BrowserRouter>

@@ -1,2 +1,8 @@
 @import "tailwindcss";
 @plugin "daisyui";
+:root {
+  --p: 142 76% 36%; /* HSL pour vert #22c55e */
+  --pf: 142 76% 28%;
+  --pc: 0 0% 100%;
+  /* etc. */
+}

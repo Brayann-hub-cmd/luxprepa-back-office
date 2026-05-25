@@ -205,7 +205,7 @@ const DashboardPage = () => {
               className="text-[15px] font-bold text-base-content mb-4"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
-              Paiements mensuels
+              Paiements par semaines
             </h3>
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={dataPaiements}>
@@ -235,7 +235,7 @@ const DashboardPage = () => {
               className="text-[15px] font-bold text-base-content mb-4"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
-              Inscriptions mensuels
+              Inscriptions par semaines
             </h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={dataInscriptions}>

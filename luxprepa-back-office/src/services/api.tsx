@@ -125,6 +125,25 @@ export interface Annonce {
     created_at: string
 }
 
+export interface Activite {
+    id: string
+    type: "inscription" | "paiement" | "note" | "annonce" | "compte"
+    message: string
+    created_at: string
+    temps: string
+}
+export interface EleveDetail {
+    id: string
+    nom: string
+    prenom: string
+    telephone: string
+    niveau?: string
+    date_naissance?: string
+    tel_parent?: string
+    role: "eleve" | "prof" | "admin"
+    created_at: string
+}
+
 // ── Réponses API ──
 export interface ReponseErreur {
     erreurs?: Record<string, string[]>
@@ -652,7 +671,7 @@ export const annonceApi = {
         type: "info" | "alerte" | "resultat" | "autre"
         is_public: boolean
         image?: File
-    }): Promise<{ message: string; annonce: Annonce }> => {
+    }): Promise<{annonce: Annonce }> => {
         const formData = new FormData()
         formData.append('titre', data.titre)
         formData.append('contenu', data.contenu)
@@ -692,7 +711,25 @@ export const annonceApi = {
         return handleResponse<{ message: string }>(response)
     },
 }
+export const eleveApi = {
+    liste: async (): Promise<EleveDetail[]> => {
+        const response = await fetch(`${BASE_URL}/eleves/`, {
+            method: "GET",
+            headers: getHeaders(true),
+        })
+        return handleResponse<EleveDetail[]>(response)
+    }
+}
 
+export const activiteApi = {
+    liste: async (): Promise<Activite[]> => {
+        const response = await fetch(`${BASE_URL}/activites/`, {
+            method: "GET",
+            headers: getHeaders(true),
+        })
+        return handleResponse<Activite[]>(response)
+    }
+}
 
 // ═══════════════════════════════════════════════════════════
 // EXEMPLES D'UTILISATION
