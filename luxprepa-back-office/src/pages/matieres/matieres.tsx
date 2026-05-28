@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { matiereApi, type Matiere } from '../../services/api';
+import { matiereApi, type Matiere, type User, tokenUtils } from '../../services/api';
 import MatiereCard from '../../components/matiere/matiereCard';
 import MatiereForm from '../../components/matiere/matiereForm';
 
@@ -12,6 +12,9 @@ const ListeMatieres: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editMatiere, setEditMatiere] = useState<Matiere | null>(null);
   const [deleteMatiere, setDeleteMatiere] = useState<Matiere | null>(null);
+
+  const user = tokenUtils.getUser() as User
+  const isAdmin = user.role === 'admin';
 
   const fetchMatieres = async () => {
     try {
@@ -53,9 +56,12 @@ const ListeMatieres: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold"> Matières</h1>
-        <button className="btn btn-primary gap-2" onClick={() => setShowForm(true)}>
-          <FiPlus /> Nouvelle matière
-        </button>
+        {
+          isAdmin &&
+          <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2" onClick={() => setShowForm(true)}>
+            <FiPlus /> Nouvelle matière
+          </button>
+        }
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

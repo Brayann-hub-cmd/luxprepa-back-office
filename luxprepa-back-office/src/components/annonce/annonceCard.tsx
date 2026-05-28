@@ -116,7 +116,7 @@ const AnnonceCard: React.FC<AnnonceCardProps> = ({ annonce, onDetail, onEdit, on
                     <FiEye /> Détails
                 </button>
                 <button
-                    className="btn btn-sm btn-primary"
+                    className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2"
                     onClick={() => onEdit(annonce)}
                 >
                     <FiEdit2 /> Modifier

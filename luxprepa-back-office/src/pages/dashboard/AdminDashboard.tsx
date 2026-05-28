@@ -9,6 +9,9 @@ import ListeAnnonces from "../annonces/annonces"
 import PlaceholderPage from "./PlaceholderPage"
 import ListeMatieres from "../matieres/matieres"
 import ListeSessions from "../sessions/sessions"
+import ConcoursPage from "../concours/concours"
+import NotesPage from "../notes/notes"
+import Parametres from "../settings/Settings"
 export type PageId =
   | "dashboard" | "eleves" | "inscriptions" | "paiements"
   | "notes" | "concours" | "matieres" | "sessions"
@@ -51,6 +54,9 @@ const AdminDashboard = () => {
       case "annonces": return <ListeAnnonces />
       case "matieres": return <ListeMatieres />
       case "sessions": return <ListeSessions />
+      case "concours": return <ConcoursPage />
+      case "notes": return <NotesPage />
+      case "parametres": return <Parametres />
       default: return <PlaceholderPage page={currentPage} />
     }
   }

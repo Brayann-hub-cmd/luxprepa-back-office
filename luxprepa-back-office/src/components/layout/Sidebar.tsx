@@ -5,8 +5,9 @@ import {
   MdSettings, MdClose, MdLogout, MdSunny, MdNightlight
 } from "react-icons/md"
 import type { PageId } from "../../pages/dashboard/AdminDashboard"
-import { tokenUtils } from "../../services/api"
-
+import { tokenUtils,eleveApi,inscriptionApi } from "../../services/api"
+import toast from "react-hot-toast"
+import { useEffect, useState } from "react"
 interface NavItem {
   id: PageId
   label: string
@@ -19,13 +20,51 @@ interface NavGroup {
   items: NavItem[]
 }
 
-const navGroups: NavGroup[] = [
+
+interface SidebarProps {
+  currentPage: PageId
+  onNavigate: (page: PageId) => void
+  isOpen: boolean
+  onClose: () => void
+  theme: "light" | "dark"
+  onToggleTheme: () => void
+}
+
+const Sidebar = ({ currentPage, onNavigate, isOpen, onClose, theme, onToggleTheme }: SidebarProps) => {
+  const [nbUsers,setNbUsers] = useState<number>(0)
+  const [nbInscripts,setNbInscrip] = useState<number>(0)
+  const user = tokenUtils.getUser()
+
+  const getNbUser = async() =>{
+    try {
+      const response = await eleveApi.liste()
+      setNbUsers(response.length)
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message)
+    }
+  }
+
+  const getNbInscriptions = async() =>{
+    try {
+      const response = await inscriptionApi.liste()
+      setNbInscrip(response.length)
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message)
+    }
+  }
+
+  useEffect(()=>{
+    getNbUser()
+    getNbInscriptions()
+  },[])
+
+  const navGroups: NavGroup[] = [
   {
     label: "Principal",
     items: [
       { id: "dashboard", label: "Dashboard", icon: <MdDashboard size={16} /> },
-      { id: "eleves", label: "Élèves", icon: <MdPeople size={16} />, badge: 124 },
-      { id: "inscriptions", label: "Inscriptions", icon: <MdAssignment size={16} />, badge: 18 },
+      { id: "eleves", label: "Élèves", icon: <MdPeople size={16} />, badge: nbUsers },
+      { id: "inscriptions", label: "Inscriptions", icon: <MdAssignment size={16} />, badge: nbInscripts },
       { id: "paiements", label: "Paiements", icon: <MdPayment size={16} /> },
     ]
   },
@@ -54,17 +93,6 @@ const navGroups: NavGroup[] = [
   },
 ]
 
-interface SidebarProps {
-  currentPage: PageId
-  onNavigate: (page: PageId) => void
-  isOpen: boolean
-  onClose: () => void
-  theme: "light" | "dark"
-  onToggleTheme: () => void
-}
-
-const Sidebar = ({ currentPage, onNavigate, isOpen, onClose, theme, onToggleTheme }: SidebarProps) => {
-  const user = tokenUtils.getUser()
 
   const getInitials = () => {
     if (!user) return "AD"

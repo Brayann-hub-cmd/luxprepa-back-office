@@ -25,21 +25,19 @@ export interface Prof extends User {
 export interface Eleve extends User {
     date_naissance?: string
     tel_parent?: string,
-    niveau?:string
+    niveau?: string
 }
 
 export interface Users {
-  id: string;
-  nom: string;
-  prenom: string;
-  telephone: string;
-  role: "eleve" | "prof" | "admin";
-  specialite?: string; // seulement pour prof
-  created_at?: string;
+    id: string;
+    nom: string;
+    prenom: string;
+    telephone: string;
+    role: "eleve" | "prof" | "admin";
+    specialite?: string; // seulement pour prof
+    created_at?: string;
 }
 
-
-// ── Concours ──
 export interface Concours {
     id: string
     nom: string
@@ -84,16 +82,16 @@ export interface CreerMatiereConcourData {
     coefficient: number
 }
 
-// ── Session ──
 export interface Session {
     id: string
     nom: string
     date?: string
+    concours: Concours
     concours_nom?: string
     nombre_notes?: number
+    concours_id: string
 }
 
-// ── Inscription ──
 export interface Inscription {
     id: string
     concours: Concours
@@ -101,9 +99,12 @@ export interface Inscription {
     created_at: string
     total_paye: number
     reste_a_payer: number
+    eleve_id: string
+    eleve_nom: string
+    eleve_telephone: string
+    eleve_niveau: string | null
 }
 
-// ── Paiement ──
 export interface Paiement {
     id: string
     montant: number
@@ -113,7 +114,6 @@ export interface Paiement {
     reste_a_payer: number
 }
 
-// ── Note ──
 export interface Note {
     id: string
     valeur: number
@@ -122,9 +122,17 @@ export interface Note {
     matiere_nom: string
     session_nom: string
     created_at: string
+    matiere_concours_id?: string
 }
 
-// ── Annonce ──
+export interface CreateNotePayload {
+    eleve_id: string
+    prof_id: string
+    session_id: string
+    matiere_concours_id: string
+    valeur: number
+}
+
 export interface Annonce {
     id: string
     titre: string
@@ -153,6 +161,13 @@ export interface EleveDetail {
     tel_parent?: string
     role: "eleve" | "prof" | "admin"
     created_at: string
+}
+
+export interface EleveInscritSession {
+    inscription_id: string;
+    eleve_id: string;
+    eleve_nom: string;
+    note?: number;
 }
 
 // ── Réponses API ──
@@ -253,6 +268,25 @@ export const authApi = {
             body: JSON.stringify(data),
         })
         return handleResponse<ReponsePreInscription>(response)
+    },
+
+    inscrire: async (data: {
+        nom: string
+        prenom: string
+        telephone: string
+        password: string
+        role: "eleve" | "prof" | "admin"
+        niveau: string
+        date_naissance?: string
+        tel_parent?: string
+        specialite?: string
+    }): Promise<Users> => {
+        const response = await fetch(`${BASE_URL}/auth/inscription/`, {
+            method: "POST",
+            headers: getHeaders(true),
+            body: JSON.stringify(data),
+        })
+        return handleResponse<Users>(response)
     },
 
     // ── Étape 2 : Confirmer le code SMS (crée le compte) ──
@@ -426,6 +460,13 @@ export const matiereConcourApi = {
         })
         return handleResponse<MatiereConcours[]>(response)
     },
+    lister: async (concoursId: string): Promise<MatiereConcours[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/matieres-concours/?concours=${concoursId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<MatiereConcours[]>(response);
+    },
     detail: async (id: string): Promise<MatiereConcours> => {
         const response = await fetch(`${BASE_URL}/matiere-concours/${id}/`, {
             method: "GET",
@@ -450,12 +491,19 @@ export const matiereConcourApi = {
         return handleResponse<{ message: string, matiere_concours: MatiereConcours }>(response)
     },
     supprimer: async (id: string): Promise<ResponseMessage> => {
-        const response = await fetch(`${BASE_URL}/matiere-concours/${id}/`,{
+        const response = await fetch(`${BASE_URL}/matiere-concours/${id}/`, {
             method: "DELETE",
             headers: getHeaders(true),
         })
         return handleResponse<ResponseMessage>(response)
-    }
+    },
+    listeParConcours: async (concoursId: string): Promise<MatiereConcours[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/matieres-concours/?concours=${concoursId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<MatiereConcours[]>(response);
+    },
 }
 
 export const concoursApi = {
@@ -483,8 +531,8 @@ export const concoursApi = {
         montant_prepa: number
         date_debut: string
         date_fin: string
-        matieres: { matiere_id: string; coefficient: number }[]
-    }): Promise<{ message: string; concours: Concours }> => {
+        matieres: Array<{ matiere_id: string; coefficient: number }>;
+    }): Promise<{ concours: Concours }> => {
         const response = await fetch(`${BASE_URL}/concours/`, {
             method: "POST",
             headers: getHeaders(true),
@@ -529,7 +577,7 @@ export const inscriptionApi = {
         return handleResponse<Inscription[]>(response)
     },
 
-    inscrire: async (concours_id: string): Promise<{ message: string; inscription: Inscription }> => {
+    inscrire: async (concours_id: string): Promise<{ inscription: Inscription }> => {
         const response = await fetch(`${BASE_URL}/inscriptions/`, {
             method: "POST",
             headers: getHeaders(true),
@@ -552,6 +600,22 @@ export const inscriptionApi = {
             headers: getHeaders(true),
         })
         return handleResponse<{ message: string }>(response)
+    },
+
+    listeParSession: async (sessionId: string): Promise<EleveInscritSession[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/inscriptions/?session=${sessionId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<EleveInscritSession[]>(response);
+    },
+
+    getByConcours: async (concoursId: string): Promise<Inscription[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/inscriptions/?concours=${concoursId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<Inscription[]>(response);
     },
 }
 
@@ -639,22 +703,31 @@ export const noteApi = {
         session_id: string
         matiere_concours_id: string
         valeur: number
-    }): Promise<{ message: string; note: Note }> => {
+    }): Promise<Note> => {
         const response = await fetch(`${BASE_URL}/notes/`, {
             method: "POST",
             headers: getHeaders(true),
             body: JSON.stringify(data),
         })
-        return handleResponse<{ message: string; note: Note }>(response)
+        return handleResponse<Note>(response)
     },
 
-    modifier: async (id: string, valeur: number): Promise<{ message: string; note: Note }> => {
+    modifier: async (id: string, valeur: number): Promise<Note> => {
         const response = await fetch(`${BASE_URL}/notes/${id}/`, {
             method: "PATCH",
             headers: getHeaders(true),
             body: JSON.stringify({ valeur }),
         })
-        return handleResponse<{ message: string; note: Note }>(response)
+        return handleResponse<Note>(response)
+    },
+
+    getBySessionAndMatiere: async (sessionId: string, matiereConcoursId: string): Promise<Note[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(
+            `${BASE_URL}/notes/?session=${sessionId}&matiere_concours=${matiereConcoursId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return handleResponse<Note[]>(response);
     },
 
     supprimer: async (id: string): Promise<{ message: string }> => {
@@ -682,7 +755,7 @@ export const annonceApi = {
         type: "info" | "alerte" | "resultat" | "autre"
         is_public: boolean
         image?: File
-    }): Promise<{annonce: Annonce }> => {
+    }): Promise<{ annonce: Annonce }> => {
         const formData = new FormData()
         formData.append('titre', data.titre)
         formData.append('contenu', data.contenu)
@@ -742,61 +815,59 @@ export const activiteApi = {
     }
 }
 
-// ═══════════════════════════════════════════════════════════
-// EXEMPLES D'UTILISATION
-// ═══════════════════════════════════════════════════════════
 export const userApi = {
-  liste: async (): Promise<Users[]> => {
-    const token = tokenUtils.recuperer();
-    const response = await fetch(`${BASE_URL}/users/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse<Users[]>(response);
-  },
-  create: async (data: {
-    nom: string;
-    prenom: string;
-    telephone: string;
-    role: string;
-    specialite?: string;
-    password: string;
-  }): Promise<{ user: Users }> => {
-    const token = tokenUtils.recuperer();
-    const response = await fetch(`${BASE_URL}/users/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<{ user: Users }>(response);
-  },
-  update: async (id: string, data: {
-    nom?: string;
-    prenom?: string;
-    telephone?: string;
-    role?: string;
-    specialite?: string;
-    password?: string;
-  }): Promise<{ user: Users }> => {
-    const token = tokenUtils.recuperer();
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<{ user: Users }>(response);
-  },
-  delete: async (id: string): Promise<{ message: string }> => {
-    const token = tokenUtils.recuperer();
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse<{ message: string }>(response);
-  },
+    liste: async (): Promise<Users[]> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/users/`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<Users[]>(response);
+    },
+    create: async (data: {
+        nom: string;
+        prenom: string;
+        telephone: string;
+        role: string;
+        specialite?: string;
+        niveau?:string;
+        password: string;
+    }): Promise<{ user: Users }> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/auth/inscription/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        });
+        return handleResponse<{ user: Users }>(response);
+    },
+    update: async (id: string, data: {
+        nom?: string;
+        prenom?: string;
+        telephone?: string;
+        role?: string;
+        specialite?: string;
+        password?: string;
+    }): Promise<{ user: Users }> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/users/${id}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        });
+        return handleResponse<{ user: Users }>(response);
+    },
+    delete: async (id: string): Promise<{ message: string }> => {
+        const token = tokenUtils.recuperer();
+        const response = await fetch(`${BASE_URL}/users/${id}/`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return handleResponse<{ message: string }>(response);
+    },
 };

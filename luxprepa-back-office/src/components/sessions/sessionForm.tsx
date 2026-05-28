@@ -61,18 +61,18 @@ const SessionForm: React.FC<SessionFormProps> = ({ session, onClose, onSaved }) 
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 relative">
                 <button onClick={onClose} className="absolute top-4 right-4 text-gray-400"><FiX size={24} /></button>
-                <h2 className="text-xl font-bold mb-4">{session ? 'Modifier' : 'Nouvelle'} session</h2>
+                <h2 className="text-xl font-bold mb-4 font-medium text-gray-400">{session ? 'Modifier' : 'Nouvelle'} session</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="label"><span className="label-text">Nom *</span></label>
+                        <label className="label"><span className="label-text font-medium text-gray-400">Nom *</span></label>
                         <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} required className="input input-bordered w-full" />
                     </div>
                     <div>
-                        <label className="label"><span className="label-text">Date (optionnelle)</span></label>
+                        <label className="label"><span className="label-text font-medium text-gray-400">Date (optionnelle)</span></label>
                         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input input-bordered w-full" />
                     </div>
                     <div>
-                        <label className="label"><span className="label-text">Concours *</span></label>
+                        <label className="label"><span className="label-text font-medium text-gray-400">Concours *</span></label>
                         <select value={concoursId} onChange={(e) => setConcoursId(e.target.value)} className="select select-bordered w-full" required>
                             <option value="">Sélectionner un concours</option>
                             {concoursList.map(c => (
@@ -81,7 +81,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ session, onClose, onSaved }) 
                         </select>
                     </div>
                     <div className="flex justify-end gap-3 pt-4">
-                        <button type="button" className="btn btn-ghost" onClick={onClose}>Annuler</button>
+                        <button type="button" className="btn btn-base-200" onClick={onClose}>Annuler</button>
                         <button type="submit" className="btn btn-primary" disabled={submitting}>
                             {submitting ? <span className="loading loading-spinner loading-sm"></span> : <><FiSave /> Enregistrer</>}
                         </button>

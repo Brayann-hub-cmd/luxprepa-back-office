@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { sessionApi, type Session } from '../../services/api';
+import { sessionApi, type Session, type User, tokenUtils } from '../../services/api';
 import SessionCard from '../../components/sessions/sessionCard';
 import SessionForm from '../../components/sessions/sessionForm';
 
@@ -12,6 +12,8 @@ const ListeSessions: React.FC = () => {
     const [showForm, setShowForm] = useState(false);
     const [editSession, setEditSession] = useState<Session | null>(null);
     const [deleteSession, setDeleteSession] = useState<Session | null>(null);
+    const user = tokenUtils.getUser() as User
+    const isAdmin = user.role === 'admin';
 
     const fetchSessions = async () => {
         try {
@@ -53,9 +55,11 @@ const ListeSessions: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Sessions</h1>
-                <button className="btn btn-primary gap-2" onClick={() => setShowForm(true)}>
-                    <FiPlus /> Nouvelle session
-                </button>
+                {isAdmin &&
+                    <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2" onClick={() => setShowForm(true)}>
+                        <FiPlus /> Nouvelle session
+                    </button>
+                }
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

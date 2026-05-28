@@ -1,7 +1,7 @@
 // components/session/SessionCard.tsx
 import React from 'react';
 import { FiCalendar, FiUsers, FiBarChart2, FiEdit2, FiTrash2 } from 'react-icons/fi';
-import { type Session } from '../../services/api';
+import { type Session, authApi, type User } from '../../services/api';
 
 interface SessionCardProps {
     session: Session;
@@ -10,6 +10,8 @@ interface SessionCardProps {
 }
 
 const SessionCard: React.FC<SessionCardProps> = ({ session, onEdit, onDelete }) => {
+    const user = authApi.getUserLocal() as User
+    const isAdmin = user.role === 'admin' ? true : false
     return (
         <div className="card bg-base-100 shadow-md hover:shadow-lg transition-all border border-gray-100">
             <div className="card-body p-5">
@@ -23,14 +25,16 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onEdit, onDelete }) 
                             </p>
                         )}
                     </div>
-                    <div className="flex gap-2">
-                        <button className="btn btn-sm btn-ghost" onClick={() => onEdit(session)} title="Modifier">
-                            <FiEdit2 />
-                        </button>
-                        <button className="btn btn-sm btn-ghost text-red-500" onClick={() => onDelete(session)} title="Supprimer">
-                            <FiTrash2 />
-                        </button>
-                    </div>
+                    {
+                        isAdmin && <div className="flex gap-2">
+                            <button className="btn btn-sm btn-ghost" onClick={() => onEdit(session)} title="Modifier">
+                                <FiEdit2 />
+                            </button>
+                            <button className="btn btn-sm btn-ghost text-red-500" onClick={() => onDelete(session)} title="Supprimer">
+                                <FiTrash2 />
+                            </button>
+                        </div>
+                    }
                 </div>
 
                 <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">

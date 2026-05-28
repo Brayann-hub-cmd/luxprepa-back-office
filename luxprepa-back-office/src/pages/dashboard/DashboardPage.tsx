@@ -12,7 +12,7 @@ import { Autoplay, Pagination } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/pagination"
 import toast from "react-hot-toast"
-import { inscriptionApi, paiementApi, type Inscription, type Paiement } from "../../services/api"
+import { inscriptionApi, paiementApi, annonceApi, type Inscription, type Paiement, type Annonce } from "../../services/api"
 
 const annoncesRecentes = [
   { titre: "Session Juin 2026 ouverte", type: "info", date: "Hier" },
@@ -61,14 +61,24 @@ const StatCard = ({ label, value, sub, icon, colorClass }: StatCardProps) => (
     </div>
   </div>
 )
+const timeAgo = (date: string) => {
+    const diff = Date.now() - new Date(date).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "à l'instant";
+    if (minutes < 60) return `il y a ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `il y a ${hours} h`;
+    const days = Math.floor(hours / 24);
+    return `il y a ${days} j`;
+};
 
 const DashboardPage = () => {
   const [inscrits, setInscrits] = useState<Inscription[]>([])
   const [nbEleves, setNbEleves] = useState<number>(0)
-  const [nbAttenteInscription, setNbAttenteInscription] = useState<number>()
-  const [inscriptionsValides, setInscriptionValides] = useState<number>()
+  const [nbAttenteInscription, setNbAttenteInscription] = useState<number>(0)
+  const [inscriptionsValides, setInscriptionValides] = useState<number>(0)
   const [paiements, setPaiements] = useState<Paiement[]>([])
-
+  const [annonces, setAnnonces] = useState<Annonce[]>([]).slice(0,5)
   const getNbElevesInscrits = async () => {
     try {
       const response = await inscriptionApi.liste()
@@ -85,6 +95,15 @@ const DashboardPage = () => {
     try {
       const response = await paiementApi.liste()
       setPaiements(response)
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message)
+    }
+  }
+
+  const getAnnonces = async () => {
+    try {
+      const response = await annonceApi.liste()
+      setAnnonces(response)
     } catch (error) {
       if (error instanceof Error) toast.error(error.message)
     }
@@ -179,6 +198,7 @@ const DashboardPage = () => {
   useEffect(() => {
     getNbElevesInscrits()
     getPaiements()
+    getAnnonces()
   }, [])
 
   const nbElevesCeMois = compterInscriptionCeMois(inscrits)
@@ -189,7 +209,7 @@ const DashboardPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Élèves inscrits" value={nbEleves} sub={nbElevesCeMois && `+ ${nbElevesCeMois} ce mois`} icon={<MdPeople size={22} />} colorClass="bg-success/10 text-success" />
+        <StatCard label="Élèves inscrits" value={nbEleves} sub={nbElevesCeMois && `+ ${nbElevesCeMois} ce mois` || '+0 ce mois'} icon={<MdPeople size={22} />} colorClass="bg-success/10 text-success" />
         <StatCard label="Inscriptions en attente" value={nbAttenteInscription} sub="À traiter" icon={<MdAssignment size={22} />} colorClass="bg-warning/10 text-warning" />
         <StatCard label="Paiements reçus" value={`${formaterMontant(mtPaiementCeMois)} Fcfa`} sub="Ce mois" icon={<MdPayment size={22} />} colorClass="bg-info/10 text-info" />
         <StatCard label="Taux de validation" value={`${inscriptionsValides}%`} sub="Inscriptions confirmées" icon={<MdTrendingUp size={22} />} colorClass="bg-secondary/10 text-secondary" />
@@ -269,7 +289,7 @@ const DashboardPage = () => {
               loop
               className="w-full"
             >
-              {annoncesRecentes.map((ann, i) => (
+              {annonces.map((ann, i) => (
                 <SwiperSlide key={i}>
                   <div className="bg-base-200 rounded-xl p-4 mb-6">
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -278,7 +298,7 @@ const DashboardPage = () => {
                         {ann.type}
                       </span>
                     </div>
-                    <p className="text-[11px] text-base-content/40">{ann.date}</p>
+                    <p className="text-[11px] text-base-content/40">{timeAgo(ann.created_at)}</p>
                   </div>
                 </SwiperSlide>
               ))}

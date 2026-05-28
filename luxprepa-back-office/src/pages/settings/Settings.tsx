@@ -2,20 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiUsers, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { userApi, User } from '../services/api';
-import UserCard from '../components/parametres/UserCard';
-import UserForm from '../components/parametres/UserForm';
+import { userApi, type Users } from '../../services/api';
+import UserCard from '../../components/settings/userCard';
+import UserForm from '../../components/settings/userForm';
 
 const roleOrder = ['admin', 'prof', 'eleve'];
 
 const Parametres: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Users[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
-  const [deleteUser, setDeleteUser] = useState<User | null>(null);
+  const [editUser, setEditUser] = useState<Users | null>(null);
+  const [deleteUser, setDeleteUser] = useState<Users | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -30,7 +30,7 @@ const Parametres: React.FC = () => {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  const handleSaved = (u: User) => {
+  const handleSaved = (u: Users) => {
     setUsers(prev => {
       const exists = prev.find(x => x.id === u.id);
       if (exists) return prev.map(x => x.id === u.id ? u : x);
@@ -71,7 +71,7 @@ const Parametres: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold flex items-center gap-2"><FiUsers /> Paramètres</h1>
-        <button className="btn btn-primary gap-2" onClick={() => setShowForm(true)}>
+        <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2" onClick={() => setShowForm(true)}>
           <FiPlus /> Nouvel utilisateur
         </button>
       </div>

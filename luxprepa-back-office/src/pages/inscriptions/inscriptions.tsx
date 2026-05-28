@@ -2,46 +2,49 @@ import { useEffect, useState } from "react"
 import { MdSearch, MdCheckCircle, MdVisibility, MdAdd } from "react-icons/md"
 import { ClipLoader } from "react-spinners"
 import toast from "react-hot-toast"
-import { inscriptionApi, type Inscription } from "../../services/api"
+import { inscriptionApi, type Inscription, tokenUtils, type User } from "../../services/api"
 
 type FilterTab = "toutes" | "en_attente" | "validee" | "rejetee"
- 
+
 const statutBadge: Record<string, string> = {
-  validee:    "badge-success",
+  validee: "badge-success",
   en_attente: "badge-warning",
-  rejetee:    "badge-error",
-  annulee:    "badge-ghost",
+  rejetee: "badge-error",
+  annulee: "badge-ghost",
 }
- 
+
 const statutLabel: Record<string, string> = {
-  validee:    "Confirmée",
+  validee: "Confirmée",
   en_attente: "En attente",
-  rejetee:    "Rejetée",
-  annulee:    "Annulée",
+  rejetee: "Rejetée",
+  annulee: "Annulée",
 }
- 
+
 const colors = ["bg-success", "bg-info", "bg-warning", "bg-secondary", "bg-error"]
- 
+
 const getInitiales = (nom: string) => {
   const parts = nom.split(" ")
   return parts.length >= 2
     ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
     : nom.slice(0, 2).toUpperCase()
 }
- 
+
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
- 
+
 const formatMontant = (montant: number) =>
   new Intl.NumberFormat("fr-CM").format(montant) + " FCFA"
- 
+
 const InscriptionsPage = () => {
   const [inscriptions, setInscriptions] = useState<Inscription[]>([])
   const [loading, setLoading] = useState(true)
   const [validatingId, setValidatingId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterTab>("toutes")
- 
+
+  const user = tokenUtils.getUser() as User
+  const isAdmin = user.role === 'admin';
+
   const charger = async () => {
     setLoading(true)
     try {
@@ -53,9 +56,9 @@ const InscriptionsPage = () => {
       setLoading(false)
     }
   }
- 
+
   useEffect(() => { charger() }, [])
- 
+
   const handleValider = async (id: string) => {
     setValidatingId(id)
     try {
@@ -68,18 +71,18 @@ const InscriptionsPage = () => {
       setValidatingId(null)
     }
   }
- 
+
   const filtered = inscriptions.filter(ins => {
     const matchSearch = (ins.concours?.nom || "").toLowerCase().includes(search.toLowerCase())
     const matchFilter = filter === "toutes" ? true : ins.status === filter
     return matchSearch && matchFilter
   })
- 
+
   const nbAttente = inscriptions.filter(i => i.status === "en_attente").length
- 
+
   return (
     <div className="space-y-4">
- 
+
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
@@ -93,15 +96,18 @@ const InscriptionsPage = () => {
             {nbAttente} inscription{nbAttente > 1 ? "s" : ""} en attente de traitement
           </p>
         </div>
-        <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2">
-          <MdAdd size={16} />
-          Nouvelle inscription
-        </button>
+        {
+          isAdmin &&
+          <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2">
+            <MdAdd size={16} />
+            Nouvelle inscription
+          </button>
+        }
       </div>
- 
+
       {/* Card */}
       <div className="card bg-base-100 shadow-sm overflow-hidden">
- 
+
         {/* Toolbar */}
         <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3.5 border-b border-base-200">
           <label className="input input-bordered input-sm flex items-center gap-2 min-w-[220px]">
@@ -114,13 +120,13 @@ const InscriptionsPage = () => {
               className="grow text-[13px] bg-transparent"
             />
           </label>
- 
+
           <div className="flex gap-1.5 flex-wrap">
             {([
-              { key: "toutes",     label: "Toutes" },
+              { key: "toutes", label: "Toutes" },
               { key: "en_attente", label: "En attente" },
-              { key: "validee",    label: "Confirmées" },
-              { key: "rejetee",    label: "Rejetées" },
+              { key: "validee", label: "Confirmées" },
+              { key: "rejetee", label: "Rejetées" },
             ] as { key: FilterTab; label: string }[]).map(tab => (
               <button
                 key={tab.key}
@@ -132,7 +138,7 @@ const InscriptionsPage = () => {
             ))}
           </div>
         </div>
- 
+
         {/* Table */}
         <div className="overflow-x-auto">
           {loading ? (
@@ -212,6 +218,5 @@ const InscriptionsPage = () => {
     </div>
   )
 }
- 
+
 export default InscriptionsPage
- 

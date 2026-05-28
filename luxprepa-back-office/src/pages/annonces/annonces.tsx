@@ -7,7 +7,7 @@ import AnnonceForm from '../../components/annonce/annonceForm';
 import AnnonceDetailModal from '../../components/annonce/annonceDetail';
 import AnnonceEditForm from '../../components/annonce/annonceEdit';
 import ConfirmModal from '../../components/confirmModal';
-import { type Annonce, annonceApi } from '../../services/api';
+import { type Annonce, annonceApi, authApi, type User } from '../../services/api';
 
 const ListeAnnonces: React.FC = () => {
     const [annonces, setAnnonces] = useState<Annonce[]>([]);
@@ -18,7 +18,8 @@ const ListeAnnonces: React.FC = () => {
     const [detailAnnonce, setDetailAnnonce] = useState<Annonce | null>(null);
     const [editAnnonce, setEditAnnonce] = useState<Annonce | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<Annonce | null>(null);
-
+    const user = authApi.getUserLocal() as User
+    const isAdmin = user.role === 'admin' ? true : false
     const fetchAnnonces = useCallback(async () => {
         try {
             const response = await annonceApi.liste();
@@ -75,12 +76,14 @@ const ListeAnnonces: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold text-gray-400">Annonces</h1>
-                <button
-                    className="btn btn-primary gap-2"
-                    onClick={() => setShowForm(true)}
-                >
-                    <FiPlus /> Nouvelle annonce
-                </button>
+                {
+                    isAdmin && <button
+                        className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2"
+                        onClick={() => setShowForm(true)}
+                    >
+                        <FiPlus /> Nouvelle annonce
+                    </button>
+                }
             </div>
             {/* Filtres */}
             <div className="card bg-base-100 shadow-sm p-4 mb-6">
@@ -108,7 +111,7 @@ const ListeAnnonces: React.FC = () => {
                         <option value="autre">Autre</option>
                     </select>
 
-                    <button className="btn btn-primary" onClick={() => { setSearch(''); setFilterType(''); }}>
+                    <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2" onClick={() => { setSearch(''); setFilterType(''); }}>
                         <FiFilter /> Réinitialiser
                     </button>
                 </div>

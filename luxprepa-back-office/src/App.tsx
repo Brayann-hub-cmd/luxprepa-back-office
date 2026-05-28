@@ -1,5 +1,6 @@
 import ProtectedRoute from "./components/auth/Protectedroute ";
 import AdminDashboard from "./pages/dashboard/AdminDashboard";
+import ResultatsPublicSession from "./resultats";
 import Login from "./components/auth/login";
 import { Navigate } from "react-router-dom";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -8,7 +9,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        
+        <Route path="/resultats-session/:sessionId" element={<ResultatsPublicSession />} />
 
         {/* Route protégée */}
         <Route

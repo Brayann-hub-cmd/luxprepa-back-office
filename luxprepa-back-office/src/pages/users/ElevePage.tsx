@@ -1,40 +1,97 @@
-import { useState } from "react"
-import { MdSearch, MdVisibility, MdPersonAdd } from "react-icons/md"
+import { useState, useEffect } from "react"
+import { MdSearch, MdVisibility, MdPersonAdd, MdRefresh } from "react-icons/md"
 import { ClipLoader } from "react-spinners"
+import { inscriptionApi, type Inscription, tokenUtils, type User } from "../../services/api"
+import toast from "react-hot-toast"
+import EleveCreateForm from "../../components/users/eleves/EleveForm"
+import EleveDetailModal from "../../components/users/eleves/EleveDetails"
 
-type FilterTab = "tous" | "actifs" | "inactifs"
-
-const mockEleves = [
-  { id: "1", initiales: "EK", color: "bg-success",   nom: "Emma Kouam",   telephone: "+237 694 00 11 22", niveau: "Terminale C", concours: "ENSPD",      paiement: "15 000 FCFA", statut: "actif" },
-  { id: "2", initiales: "PM", color: "bg-info",      nom: "Paul Mbarga",  telephone: "+237 677 33 44 55", niveau: "Bac+1",       concours: "IUT Douala", paiement: "En attente",  statut: "attente" },
-  { id: "3", initiales: "SN", color: "bg-warning",   nom: "Sophie Ngo",   telephone: "+237 655 22 33 44", niveau: "Terminale D", concours: "Médecine",   paiement: "20 000 FCFA", statut: "actif" },
-  { id: "4", initiales: "JF", color: "bg-secondary", nom: "Jules Foka",   telephone: "+237 699 55 66 77", niveau: "Terminale A", concours: "ENSPT",      paiement: "Non payé",    statut: "inactif" },
-  { id: "5", initiales: "AE", color: "bg-error",     nom: "Alima Essama", telephone: "+237 670 88 99 00", niveau: "Bac+1",       concours: "IAI",        paiement: "8 000 FCFA",  statut: "actif" },
-]
+type FilterTab = "tous" | "validee" | "en_attente" | "rejetee"
 
 const statutBadge: Record<string, string> = {
-  actif:   "badge-success",
-  attente: "badge-warning",
-  inactif: "badge-error",
+  validee: "badge-success",
+  en_attente: "badge-warning",
+  rejetee: "badge-error",
+  annulee: "badge-ghost",
 }
 
 const statutLabel: Record<string, string> = {
-  actif:   "Actif",
-  attente: "En attente",
-  inactif: "Inactif",
+  validee: "Validée",
+  en_attente: "En attente",
+  rejetee: "Rejetée",
+  annulee: "Annulée",
 }
+
+// ── Helper initiales ──────────────────────────────────────────────────────────
+function getInitiales(nom: string): string {
+  return nom
+    .split(" ")
+    .map(m => m[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+// ── Helper couleur avatar déterministe ────────────────────────────────────────
+
+const COLORS = [
+  "bg-success", "bg-info", "bg-warning",
+  "bg-error", "bg-primary", "bg-secondary", "bg-accent",
+]
+
+function getColor(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash)
+  return COLORS[Math.abs(hash) % COLORS.length]
+}
+
+// ── Helper montant ────────────────────────────────────────────────────────────
+function formatMontant(montant: number): string {
+  return `${montant.toLocaleString("fr-FR")} FCFA`
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 const ElevesPage = () => {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterTab>("tous")
-  const [loading] = useState(false)
+  const [inscriptions, setInscriptions] = useState<Inscription[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedInscription, setSelectedInscription] = useState<Inscription | null>(null)
+  const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const filtered = mockEleves.filter(e => {
-    const matchSearch = e.nom.toLowerCase().includes(search.toLowerCase())
+  const user = tokenUtils.getUser() as User
+  const isAdmin = user.role === "admin"
+
+  // ── Chargement ──
+  const fetchInscriptions = async () => {
+    try {
+      setLoading(true)
+      const data = await inscriptionApi.liste()
+      setInscriptions(data)
+    } catch {
+      toast.error("Impossible de charger les inscriptions.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchInscriptions() }, [])
+
+  // ── Filtrage ──
+  const filtered = inscriptions.filter(insc => {
+    const q = search.toLowerCase()
+    const matchSearch =
+      insc.eleve_nom.toLowerCase().includes(q) ||
+      insc.eleve_telephone?.includes(q) ||
+      insc.concours.nom.toLowerCase().includes(q)
+
     const matchFilter =
-      filter === "tous"    ? true :
-      filter === "actifs"  ? e.statut === "actif" :
-      e.statut === "inactif"
+      filter === "tous" ? true :
+        filter === "validee" ? insc.status === "validee" :
+          filter === "en_attente" ? insc.status === "en_attente" :
+            insc.status === "rejetee" || insc.status === "annulee"
+
     return matchSearch && matchFilter
   })
 
@@ -51,13 +108,30 @@ const ElevesPage = () => {
             Élèves
           </h2>
           <p className="text-[13px] text-base-content/50 mt-0.5">
-            {mockEleves.length} élèves inscrits cette session
+            {loading ? "Chargement..." : `${inscriptions.length} inscription${inscriptions.length !== 1 ? "s" : ""} cette session`}
           </p>
         </div>
-        <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2">
-          <MdPersonAdd size={16} />
-          Ajouter un élève
-        </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={fetchInscriptions}
+            className="btn btn-sm btn-ghost btn-circle"
+            title="Rafraîchir"
+            disabled={loading}
+          >
+            <MdRefresh size={16} className={loading ? "animate-spin" : ""} />
+          </button>
+
+          {isAdmin && (
+            <button
+              className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2"
+              onClick={() => setShowCreateForm(true)}
+            >
+              <MdPersonAdd size={16} />
+              Ajouter un élève
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Card */}
@@ -69,27 +143,30 @@ const ElevesPage = () => {
             <MdSearch size={16} className="text-base-content/40" />
             <input
               type="text"
-              placeholder="Rechercher un élève..."
+              placeholder="Nom, téléphone ou concours..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="grow text-[13px] bg-transparent"
             />
           </label>
 
-          <div className="flex gap-1.5">
-            {(["tous", "actifs", "inactifs"] as FilterTab[]).map(tab => (
+          <div className="flex gap-1.5 flex-wrap">
+            {(["tous", "validee", "en_attente", "rejetee"] as FilterTab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setFilter(tab)}
                 className={`btn btn-xs rounded-full ${filter === tab ? "btn-neutral" : "btn-ghost"}`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === "tous" ? "Tous"
+                  : tab === "validee" ? "Validés"
+                    : tab === "en_attente" ? "En attente"
+                      : "Rejetés/Annulés"}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Table */}
+        {/* Tableau */}
         <div className="overflow-x-auto">
           {loading ? (
             <div className="flex justify-center items-center py-16">
@@ -109,27 +186,82 @@ const ElevesPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(eleve => (
-                  <tr key={eleve.id} className="hover:bg-base-200/30 transition-colors">
+                {filtered.map(insc => (
+                  <tr key={insc.id} className="hover:bg-base-200/30 transition-colors">
+
+                    {/* Nom + avatar */}
                     <td>
                       <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 ${eleve.color}`}>
-                          {eleve.initiales}
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 ${getColor(insc.eleve_id)}`}>
+                          {getInitiales(insc.eleve_nom)}
                         </div>
-                        <span className="font-semibold text-[13px] text-base-content">{eleve.nom}</span>
+                        <span className="font-semibold text-[13px] text-base-content">
+                          {insc.eleve_nom}
+                        </span>
                       </div>
                     </td>
-                    <td className="text-[13px] text-base-content/70">{eleve.telephone}</td>
-                    <td className="text-[13px] text-base-content/70">{eleve.niveau}</td>
-                    <td className="text-[13px] text-base-content/70">{eleve.concours}</td>
-                    <td className="text-[13px] text-base-content/70">{eleve.paiement}</td>
+
+                    {/* Téléphone */}
+                    {isAdmin ?
+                      <td className="text-[13px] text-base-content/70">
+                        {insc.eleve_telephone ?? (
+                          <span className="text-base-content/30 italic text-[12px]">—</span>
+                        )}
+                      </td> :
+                      <td className="text-[13px] text-base-content/70">
+                        Masqué
+                      </td>
+                    }
+
+                    {/* Niveau */}
                     <td>
-                      <span className={`badge badge-sm ${statutBadge[eleve.statut]}`}>
-                        {statutLabel[eleve.statut]}
+                      {insc.eleve_niveau ? (
+                        <span className="badge badge-sm badge-ghost text-[11px]">
+                          {insc.eleve_niveau}
+                        </span>
+                      ) : (
+                        <span className="text-base-content/30 text-[12px]">—</span>
+                      )}
+                    </td>
+
+                    {/* Concours */}
+                    <td className="text-[13px] text-base-content/70">
+                      {insc.concours.nom}
+                    </td>
+
+                    {/* Paiement */}
+                    <td className="text-[13px]">
+                      {insc.total_paye > 0 && insc.reste_a_payer === 0 ? (
+                        <span className="text-success font-medium">
+                          {formatMontant(insc.total_paye)}
+                        </span>
+                      ) : insc.total_paye > 0 ? (
+                        <div className="space-y-0.5">
+                          <span className="text-warning font-medium">
+                            {formatMontant(insc.total_paye)}
+                          </span>
+                          <p className="text-[11px] text-base-content/40">
+                            reste {formatMontant(insc.reste_a_payer)}
+                          </p>
+                        </div>
+                      ) : (
+                        <span className="text-error text-[12px]">Non payé</span>
+                      )}
+                    </td>
+
+                    {/* Statut */}
+                    <td>
+                      <span className={`badge badge-sm ${statutBadge[insc.status]}`}>
+                        {statutLabel[insc.status]}
                       </span>
                     </td>
+
+                    {/* Actions */}
                     <td>
-                      <button className="btn btn-xs btn-ghost gap-1">
+                      <button
+                        className="btn btn-xs btn-ghost gap-1"
+                        onClick={() => setSelectedInscription(insc)}
+                      >
                         <MdVisibility size={13} />
                         Voir
                       </button>
@@ -139,13 +271,33 @@ const ElevesPage = () => {
               </tbody>
             </table>
           )}
+
           {!loading && filtered.length === 0 && (
             <div className="text-center py-10 text-base-content/40 text-[14px]">
-              Aucun élève trouvé.
+              {inscriptions.length === 0
+                ? "Aucune inscription enregistrée."
+                : "Aucune inscription ne correspond à votre recherche."
+              }
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal détail */}
+      {selectedInscription && (
+        <EleveDetailModal
+          inscription={selectedInscription}
+          onClose={() => setSelectedInscription(null)}
+        />
+      )}
+
+      {/* Formulaire création */}
+      {showCreateForm && (
+        <EleveCreateForm
+          onClose={() => setShowCreateForm(false)}
+          onCreated={fetchInscriptions}
+        />
+      )}
     </div>
   )
 }

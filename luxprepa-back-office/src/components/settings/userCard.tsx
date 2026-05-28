@@ -1,12 +1,12 @@
 // components/parametres/UserCard.tsx
 import React from 'react';
 import { FiUser, FiEdit2, FiTrash2, FiPhone } from 'react-icons/fi';
-import { User } from '../../services/api';
+import { type Users } from '../../services/api';
 
 interface UserCardProps {
-  user: User;
-  onEdit: (u: User) => void;
-  onDelete: (u: User) => void;
+  user: Users;
+  onEdit: (u: Users) => void;
+  onDelete: (u: Users) => void;
 }
 
 const roleBadgeClass: Record<string, string> = {
@@ -22,7 +22,7 @@ const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-3">
             <div className="avatar placeholder">
-              <div className="bg-primary text-neutral-content rounded-full w-12">
+              <div className="bg-green-700 flex items-center justify-center text-neutral-content rounded-full w-12">
                 <span className="text-xl font-bold">
                   {user.prenom.charAt(0).toUpperCase()}{user.nom.charAt(0).toUpperCase()}
                 </span>

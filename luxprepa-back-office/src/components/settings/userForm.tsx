@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { FiX, FiSave } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { authApi, type User,type Prof } from '../../services/api';
+import { userApi , type Users,type Prof } from '../../services/api';
 
 interface UserFormProps {
-  user?: User;
+  user?: Users;
   onClose: () => void;
-  onSaved: (u: User) => void;
+  onSaved: (u: Users) => void;
 }
 
 const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
@@ -37,7 +37,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
         toast.success('Utilisateur modifié');
         onSaved(res.user);
       } else {
-        const res = await authApi.create({
+        const res = await userApi.create({
           nom,
           prenom,
           telephone,
