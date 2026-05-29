@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiSave } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { concoursApi, matiereConcourApi, matiereApi,type Concours, type Matiere } from '../../services/api';
+import { concoursApi, matiereApi,type Concours, type Matiere } from '../../services/api';
 
 interface Props {
   concours?: Concours;

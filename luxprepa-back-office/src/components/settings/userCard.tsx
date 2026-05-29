@@ -1,6 +1,6 @@
 // components/parametres/UserCard.tsx
 import React from 'react';
-import { FiUser, FiEdit2, FiTrash2, FiPhone } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPhone } from 'react-icons/fi';
 import { type Users } from '../../services/api';
 
 interface UserCardProps {

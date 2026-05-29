@@ -84,10 +84,10 @@ const Sidebar = ({ currentPage, onNavigate, isOpen, onClose, theme, onToggleThem
     ]
   },
   {
-    label: "Équipe",
+    label: "Configurations",
     items: [
-      { id: "profs", label: "Professeurs", icon: <MdPerson size={16} /> },
-      { id: "admins", label: "Administrateurs", icon: <MdAdminPanelSettings size={16} /> },
+      // { id: "profs", label: "Professeurs", icon: <MdPerson size={16} /> },
+      // { id: "admins", label: "Administrateurs", icon: <MdAdminPanelSettings size={16} /> },
       { id: "parametres", label: "Paramètres", icon: <MdSettings size={16} /> },
     ]
   },

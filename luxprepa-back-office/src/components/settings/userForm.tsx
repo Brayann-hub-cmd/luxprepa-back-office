@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { FiX, FiSave } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import { userApi , type Users,type Prof } from '../../services/api';
+import { userApi , type Users } from '../../services/api';
 
 interface UserFormProps {
   user?: Users;
@@ -17,10 +17,10 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
   const [role, setRole] = useState<string>(user?.role || 'eleve');
   const [specialite, setSpecialite] = useState(user?.specialite || '');
   const [password, setPassword] = useState('');
+  const niveau = 'tle'
   const [submitting, setSubmitting] = useState(false);
 
   const isEditing = !!user;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -43,6 +43,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
           telephone,
           role,
           specialite: role === 'prof' ? specialite : undefined,
+          niveau: role === 'eleve' ? niveau: 'post_bac',
           password,
         });
         toast.success('Utilisateur créé');
@@ -50,7 +51,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
       }
       onClose();
     } catch (error) {
-      toast.error('Erreur');
+      if (error instanceof Error) toast.error(error.message)
     } finally {
       setSubmitting(false);
     }
@@ -79,7 +80,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose, onSaved }) => {
           <div>
             <label className="label"><span className="label-text">Rôle *</span></label>
             <select value={role} onChange={(e) => setRole(e.target.value)} className="select select-bordered w-full">
-              <option value="eleve">Élève</option>
+              <option value="">Professeur ou admin ?</option>
               <option value="prof">Professeur</option>
               <option value="admin">Administrateur</option>
             </select>

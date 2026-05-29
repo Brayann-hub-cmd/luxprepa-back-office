@@ -14,12 +14,6 @@ import "swiper/css/pagination"
 import toast from "react-hot-toast"
 import { inscriptionApi, paiementApi, annonceApi, type Inscription, type Paiement, type Annonce } from "../../services/api"
 
-const annoncesRecentes = [
-  { titre: "Session Juin 2026 ouverte", type: "info", date: "Hier" },
-  { titre: "Résultats ENSP disponibles", type: "resultat", date: "2 j" },
-  { titre: "Alerte : délai paiement", type: "alerte", date: "3 j" },
-]
-
 const activites = [
   { icon: <MdCheckCircle size={15} />, color: "text-success bg-success/10", text: <><strong>Emma Kouam</strong> — inscription confirmée ENSPD</>, time: "2 min" },
   { icon: <MdCreditCard size={15} />, color: "text-warning bg-warning/10", text: <><strong>Paiement reçu</strong> — Paul Mbarga 10 000 FCFA</>, time: "4 h" },

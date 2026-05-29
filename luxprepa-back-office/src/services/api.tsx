@@ -101,6 +101,7 @@ export interface Inscription {
     reste_a_payer: number
     eleve_id: string
     eleve_nom: string
+    eleve_prenom?:string
     eleve_telephone: string
     eleve_niveau: string | null
 }
@@ -112,6 +113,9 @@ export interface Paiement {
     created_at: string
     total_paye: number
     reste_a_payer: number
+    eleve_nom: string;
+    eleve_prenom: string;
+    concours_nom: string;
 }
 
 export interface Note {
@@ -425,7 +429,7 @@ export const matiereApi = {
     creer: async (data: CreerMatiereData): Promise<{ message: string; matiere: Matiere }> => {
         const response = await fetch(`${BASE_URL}/matieres/`, {
             method: "POST",
-            headers: getHeaders(),
+            headers: getHeaders(true),
             body: JSON.stringify(data)
         })
         return handleResponse<{ message: string; matiere: Matiere }>(response)
@@ -829,16 +833,12 @@ export const userApi = {
         telephone: string;
         role: string;
         specialite?: string;
-        niveau?:string;
+        niveau?: string;
         password: string;
     }): Promise<{ user: Users }> => {
-        const token = tokenUtils.recuperer();
-        const response = await fetch(`${BASE_URL}/auth/inscription/`, {
+        const response = await fetch(`${BASE_URL}/users/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
+            headers: getHeaders(true),
             body: JSON.stringify(data),
         });
         return handleResponse<{ user: Users }>(response);
@@ -851,22 +851,17 @@ export const userApi = {
         specialite?: string;
         password?: string;
     }): Promise<{ user: Users }> => {
-        const token = tokenUtils.recuperer();
         const response = await fetch(`${BASE_URL}/users/${id}/`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
+            headers:getHeaders(true),
             body: JSON.stringify(data),
         });
         return handleResponse<{ user: Users }>(response);
     },
     delete: async (id: string): Promise<{ message: string }> => {
-        const token = tokenUtils.recuperer();
         const response = await fetch(`${BASE_URL}/users/${id}/`, {
             method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: getHeaders(true),
         });
         return handleResponse<{ message: string }>(response);
     },

@@ -3,6 +3,7 @@ import { MdSearch, MdCheckCircle, MdVisibility, MdAdd } from "react-icons/md"
 import { ClipLoader } from "react-spinners"
 import toast from "react-hot-toast"
 import { inscriptionApi, type Inscription, tokenUtils, type User } from "../../services/api"
+import InscriptionDetailModal from "../../components/inscriptions/inscriptionIdModal"
 
 type FilterTab = "toutes" | "en_attente" | "validee" | "rejetee"
 
@@ -41,6 +42,7 @@ const InscriptionsPage = () => {
   const [validatingId, setValidatingId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterTab>("toutes")
+  const [selectedInscription, setSelectedInscription] = useState<Inscription | null>(null);
 
   const user = tokenUtils.getUser() as User
   const isAdmin = user.role === 'admin';
@@ -196,10 +198,14 @@ const InscriptionsPage = () => {
                               Confirmer
                             </button>
                           )}
-                          <button className="btn btn-xs btn-ghost gap-1">
+                          <button
+                            className="btn btn-xs btn-ghost gap-1"
+                            onClick={() => setSelectedInscription(ins)}
+                          >
                             <MdVisibility size={13} />
                             Voir
                           </button>
+
                         </div>
                       </td>
                     </tr>
@@ -212,6 +218,12 @@ const InscriptionsPage = () => {
             <div className="text-center py-10 text-base-content/40 text-[14px]">
               Aucune inscription trouvée.
             </div>
+          )}
+          {selectedInscription && (
+            <InscriptionDetailModal
+              inscription={selectedInscription}
+              onClose={() => setSelectedInscription(null)}
+            />
           )}
         </div>
       </div>

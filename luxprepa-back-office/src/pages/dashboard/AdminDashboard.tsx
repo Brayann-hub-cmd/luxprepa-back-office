@@ -12,10 +12,12 @@ import ListeSessions from "../sessions/sessions"
 import ConcoursPage from "../concours/concours"
 import NotesPage from "../notes/notes"
 import Parametres from "../settings/Settings"
+import PaiementsPage from "../paiements/paiements"
 export type PageId =
   | "dashboard" | "eleves" | "inscriptions" | "paiements"
   | "notes" | "concours" | "matieres" | "sessions"
-  | "annonces" | "profs" | "admins" | "parametres"
+  | "annonces"| "parametres" 
+  // | "profs" | "admins" 
 
 export const pageTitles: Record<PageId, string> = {
   dashboard: "Dashboard",
@@ -27,8 +29,8 @@ export const pageTitles: Record<PageId, string> = {
   matieres: "Matières",
   sessions: "Sessions",
   annonces: "Annonces",
-  profs: "Professeurs",
-  admins: "Administrateurs",
+  // profs: "Professeurs",
+  // admins: "Administrateurs",
   parametres: "Paramètres",
 }
 
@@ -57,6 +59,7 @@ const AdminDashboard = () => {
       case "concours": return <ConcoursPage />
       case "notes": return <NotesPage />
       case "parametres": return <Parametres />
+      case "paiements": return <PaiementsPage />
       default: return <PlaceholderPage page={currentPage} />
     }
   }

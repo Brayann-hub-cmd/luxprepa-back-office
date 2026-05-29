@@ -1,10 +1,10 @@
 // components/concours/ConcoursCard.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { FiEdit2, FiTrash2, FiCalendar, FiUsers, FiBookOpen } from 'react-icons/fi';
 import { BiMoney } from 'react-icons/bi';
 import { type Concours } from '../../services/api';
 import { type User, tokenUtils } from '../../services/api';
-
+import InscriptionsConcoursModal from '../inscriptions/voirInscription';
 interface Props {
   concours: Concours;
   onEdit: (c: Concours) => void;
@@ -15,7 +15,7 @@ interface Props {
 const ConcoursCard: React.FC<Props> = ({ concours, onEdit, onDelete, onViewInscriptions }) => {
   const user = tokenUtils.getUser() as User
   const isAdmin = user.role === 'admin';
-
+  const [showInscriptions, setShowInscriptions] = useState(false);
   const formatDate = (d: string) => new Date(d).toLocaleDateString('fr-FR');
 
   return (
@@ -68,11 +68,17 @@ const ConcoursCard: React.FC<Props> = ({ concours, onEdit, onDelete, onViewInscr
         <div className="card-actions justify-end mt-4 pt-3 border-t border-gray-100">
           <button
             className="btn btn-sm btn-outline gap-2"
-            onClick={() => onViewInscriptions(concours)}
+            onClick={() => setShowInscriptions(true)}
           >
             Voir les inscriptions
           </button>
         </div>
+        {showInscriptions && (
+          <InscriptionsConcoursModal
+            concours={concours}
+            onClose={() => setShowInscriptions(false)}
+          />
+        )}
       </div>
     </div>
   );

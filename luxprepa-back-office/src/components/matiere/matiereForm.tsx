@@ -12,7 +12,7 @@ interface MatiereFormProps {
 
 const MatiereForm: React.FC<MatiereFormProps> = ({ matiere, onClose, onSaved }) => {
     const [nom, setNom] = useState(matiere?.nom || '');
-    const [description, setDescription] = useState(matiere?.description || '');
+    const [description, setDescription] = useState(matiere?.description);
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +30,7 @@ const MatiereForm: React.FC<MatiereFormProps> = ({ matiere, onClose, onSaved }) 
             }
             onClose();
         } catch (error) {
-            toast.error('Erreur');
+            if (error instanceof Error) toast.error(error.message)
         } finally {
             setSubmitting(false);
         }
