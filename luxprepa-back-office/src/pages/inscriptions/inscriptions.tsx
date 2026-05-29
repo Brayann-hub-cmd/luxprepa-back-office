@@ -4,7 +4,7 @@ import { ClipLoader } from "react-spinners"
 import toast from "react-hot-toast"
 import { inscriptionApi, type Inscription, tokenUtils, type User } from "../../services/api"
 import InscriptionDetailModal from "../../components/inscriptions/inscriptionIdModal"
-
+import AdminInscriptionForm from "../../components/users/eleves/AdminInscriptionForm"
 type FilterTab = "toutes" | "en_attente" | "validee" | "rejetee"
 
 const statutBadge: Record<string, string> = {
@@ -43,7 +43,7 @@ const InscriptionsPage = () => {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<FilterTab>("toutes")
   const [selectedInscription, setSelectedInscription] = useState<Inscription | null>(null);
-
+  const [modalOpen, setModalOpen] = useState(false);
   const user = tokenUtils.getUser() as User
   const isAdmin = user.role === 'admin';
 
@@ -100,7 +100,7 @@ const InscriptionsPage = () => {
         </div>
         {
           isAdmin &&
-          <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2">
+          <button className="btn btn-sm bg-[#1a7c3e] hover:bg-[#22a052] text-white border-none gap-2" onClick={() => setModalOpen(true)}>
             <MdAdd size={16} />
             Nouvelle inscription
           </button>
@@ -227,6 +227,19 @@ const InscriptionsPage = () => {
           )}
         </div>
       </div>
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Inscription administrateur</h2>
+              <button onClick={() => setModalOpen(false)} className="p-1 rounded-full hover:bg-gray-100">
+                ✕
+              </button>
+            </div>
+            <AdminInscriptionForm onSuccess={() => { setModalOpen(false); toast.success('Inscription réussie !'); }} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

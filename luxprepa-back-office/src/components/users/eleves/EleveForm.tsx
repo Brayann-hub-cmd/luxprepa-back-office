@@ -4,7 +4,7 @@ import { FiX, FiSave } from 'react-icons/fi';
 import { ClipLoader } from 'react-spinners';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../../contexts/AuthContext';
-import { inscriptionApi, authApi, type Users, concoursApi, type Concours } from '../../../services/api';
+import { userApi, concoursApi, type Concours } from '../../../services/api';
 import { MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 interface EleveCreateFormProps {
   onClose: () => void;
@@ -24,7 +24,7 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
   const [concoursList, setConcoursList] = useState<Concours[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
-
+  const [eleveCreateId, setEleveCreateId] = useState<string | null>(null)
   useEffect(() => {
     concoursApi.liste()
       .then(data => setConcoursList(data))
@@ -44,6 +44,14 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
       </div>
     );
   }
+  // const handleInscription = async (eleveId: string, concoursId: string) => {
+  //   try {
+  //     const result = await inscrireAdmin({ eleve_id: eleveId, concours_id: concoursId });
+  //     console.log('Inscription réussie :', result.message);
+  //   } catch (error) {
+  //     console.error('Erreur inscription :', error);
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,26 +62,23 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
 
     setSubmitting(true);
     try {
-      // Appel API pour créer l'élève et l'inscription (à adapter selon votre backend)
-      await authApi.inscrire({
-        nom,
-        prenom,
-        telephone,
-        password,
-        role:"eleve",
-        niveau,
-        // concours_id: concoursId,
+      await userApi.create({
+        nom, prenom, telephone,
+        role: "eleve",
+        niveau, password,
       });
+
       toast.success('Élève inscrit avec succès !');
-      //api d'inscription d'un élève à un concours
       onCreated();
       onClose();
     } catch (error: any) {
-      toast.error(error?.message || 'Erreur lors de la création');
+      toast.error(error?.message || "Erreur lors de la création");
     } finally {
       setSubmitting(false);
     }
   };
+
+
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -125,33 +130,33 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
           </div>
 
 
-            {/* Niveau */}
-            <div>
-              <label className="label"><span className="label-text text-green-400 font-semibold">Niveau</span></label>
-              <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="select select-bordered w-full">
-                <option value="">Sélectionner</option>
-                <option value="tle">Terminal</option>
-                <option value="post_bac">Bacc +</option>
-              </select>
-            </div>
+          {/* Niveau */}
+          <div>
+            <label className="label"><span className="label-text text-green-400 font-semibold">Niveau</span></label>
+            <select value={niveau} onChange={(e) => setNiveau(e.target.value)} className="select select-bordered w-full">
+              <option value="">Sélectionner</option>
+              <option value="tle">Terminal</option>
+              <option value="post_bac">Bacc +</option>
+            </select>
+          </div>
 
-            {/* Concours */}
-            <div>
-              <label className="label"><span className="label-text text-green-400 font-semibold">Concours visé *</span></label>
-              <select value={concoursId} onChange={(e) => setConcoursId(e.target.value)} required className="select select-bordered w-full">
-                <option value="">Sélectionner un concours</option>
-                {concoursList.map(c => (
-                  <option key={c.id} value={c.id}>{c.nom}</option>
-                ))}
-              </select>
-            </div>
+          {/* Concours */}
+          {/* <div>
+            <label className="label"><span className="label-text text-green-400 font-semibold">Concours visé *</span></label>
+            <select value={concoursId} onChange={(e) => setConcoursId(e.target.value)} required className="select select-bordered w-full">
+              <option value="">Sélectionner un concours</option>
+              {concoursList.map(c => (
+                <option key={c.id} value={c.id}>{c.nom}</option>
+              ))}
+            </select>
+          </div> */}
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button type="button" className="btn btn-ghost text-gray-500" onClick={onClose}>Annuler</button>
-              <button type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting ? <ClipLoader size={18} color="#fff" /> : <><FiSave /> Inscrire</>}
-              </button>
-            </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <button type="button" className="btn btn-ghost text-gray-500" onClick={onClose}>Annuler</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? <ClipLoader size={18} color="#fff" /> : <><FiSave /> Inscrire</>}
+            </button>
+          </div>
         </form>
       </div>
     </div>

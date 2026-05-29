@@ -866,3 +866,18 @@ export const userApi = {
         return handleResponse<{ message: string }>(response);
     },
 };
+export interface InscriptionResponse {
+  message: string;
+  id: string;
+}
+export const inscrireAdmin = async (data: {
+  eleve_id: string;
+  concours_id: string;
+}): Promise<InscriptionResponse> => {
+  const response = await fetch(`${BASE_URL}/admin/inscriptions/`, {
+    method: 'POST',
+    headers: getHeaders(true),
+    body: JSON.stringify(data),
+  });
+  return handleResponse<InscriptionResponse>(response);
+};
