@@ -338,10 +338,10 @@ const NotesPage = () => {
                                 </div>
 
                                 <button
-                                    onClick={genererLienPublic}
+                                    // onClick={genererLienPublic}
                                     className="btn btn-sm btn-success mt-2"
                                 >
-                                    📋 Copier lien public des résultats
+                                    Publier les résultats
                                 </button>
 
                             </>
