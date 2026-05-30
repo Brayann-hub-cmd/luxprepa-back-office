@@ -4,13 +4,13 @@ import { ClipLoader } from 'react-spinners'
 import {
     sessionApi, noteApi, inscriptionApi, matiereConcourApi,
     authApi,
-    type Session, type MatiereConcours, type Note, type Inscription,
+    type Session, type MatiereConcours, type Note, type Inscription,type User
 } from '../../services/api'
 
 type Step = 'session' | 'matiere' | 'notes'
 
 const NotesPage = () => {
-    const user = authApi.getUserLocal()
+    const user = authApi.getUserLocal() as User
     const [sessions, setSessions] = useState<Session[]>([])
     const [selectedSession, setSelectedSession] = useState<Session | null>(null)
     const [matieres, setMatieres] = useState<MatiereConcours[]>([])
@@ -21,7 +21,7 @@ const NotesPage = () => {
     const [step, setStep] = useState<Step>('session')
     const [loadingEleves, setLoadingEleves] = useState(false)
     const [submitting, setSubmitting] = useState(false)
-    const [lienResultats, setLienResultats] = useState('')
+    // const [lienResultats, setLienResultats] = useState('')
     const genererLienPublic = () => {
         if (!selectedSession?.id) return;
         const lien = `${window.location.origin}/resultats-session/${selectedSession.id}/`;
@@ -81,8 +81,6 @@ const NotesPage = () => {
                 )
                 setNotesExistantes(notesData)
 
-                // Préremplir : eleve_nom → valeur
-                // Les deux côtés utilisent le même format "Prénom Nom"
                 const initNotes: Record<string, number> = {}
                 notesData.forEach(note => {
                     initNotes[note.eleve_nom] = note.valeur
@@ -149,19 +147,20 @@ const NotesPage = () => {
             )
             setNotesExistantes(notesRefresh)
 
-            const token = btoa(`${selectedSession.id}-${selectedMatiere.id}`)
-            setLienResultats(`${window.location.origin}/resultats?token=${token}`)
-        } catch {
+            // const token = btoa(`${selectedSession.id}-${selectedMatiere.id}`)
+            // setLienResultats(`${window.location.origin}/resultats?token=${token}`)
+        } catch(error) {
+            if (error instanceof Error) toast.error(error.message)
             toast.error("Erreur lors de l'enregistrement des notes")
         } finally {
             setSubmitting(false)
         }
     }
 
-    const copierLien = () => {
-        navigator.clipboard.writeText(lienResultats)
-        toast.success('Lien copié !')
-    }
+    // const copierLien = () => {
+    //     navigator.clipboard.writeText(lienResultats)
+    //     toast.success('Lien copié !')
+    // }
 
     const nbNotesSaisies = eleves.filter(i => {
         const v = notes[i.eleve_nom]
@@ -338,7 +337,7 @@ const NotesPage = () => {
                                 </div>
 
                                 <button
-                                    // onClick={genererLienPublic}
+                                    onClick={genererLienPublic}
                                     className="btn btn-sm btn-success mt-2"
                                 >
                                     Publier les résultats

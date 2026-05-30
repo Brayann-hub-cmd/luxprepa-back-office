@@ -150,7 +150,7 @@ export interface Annonce {
 
 export interface Activite {
     id: string
-    type: "inscription" | "paiement" | "note" | "annonce" | "compte"
+    type_act: "inscription" | "paiement" | "note" | "annonce" | "compte"
     message: string
     created_at: string
     temps: string

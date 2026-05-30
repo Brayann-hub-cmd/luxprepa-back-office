@@ -20,16 +20,8 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
   const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('')
   const [niveau, setNiveau] = useState('tle');
-  const [concoursId, setConcoursId] = useState('');
-  const [concoursList, setConcoursList] = useState<Concours[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
-  const [eleveCreateId, setEleveCreateId] = useState<string | null>(null)
-  useEffect(() => {
-    concoursApi.liste()
-      .then(data => setConcoursList(data))
-      .catch(() => toast.error('Erreur chargement concours'));
-  }, []);
 
   // Si le rôle est prof, on affiche un message d'interdiction
   if (isProf) {
@@ -44,18 +36,10 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
       </div>
     );
   }
-  // const handleInscription = async (eleveId: string, concoursId: string) => {
-  //   try {
-  //     const result = await inscrireAdmin({ eleve_id: eleveId, concours_id: concoursId });
-  //     console.log('Inscription réussie :', result.message);
-  //   } catch (error) {
-  //     console.error('Erreur inscription :', error);
-  //   }
-  // };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nom || !prenom || !telephone || !concoursId) {
+    if (!nom || !prenom || !telephone) {
       toast.error('Veuillez remplir tous les champs obligatoires.');
       return;
     }
@@ -65,20 +49,19 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
       await userApi.create({
         nom, prenom, telephone,
         role: "eleve",
-        niveau, password,
+        niveau, password,specialite: undefined,
       });
 
       toast.success('Élève inscrit avec succès !');
       onCreated();
       onClose();
     } catch (error: any) {
+      console.log(error);
       toast.error(error?.message || "Erreur lors de la création");
     } finally {
       setSubmitting(false);
     }
   };
-
-
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -139,17 +122,6 @@ const EleveCreateForm: React.FC<EleveCreateFormProps> = ({ onClose, onCreated })
               <option value="post_bac">Bacc +</option>
             </select>
           </div>
-
-          {/* Concours */}
-          {/* <div>
-            <label className="label"><span className="label-text text-green-400 font-semibold">Concours visé *</span></label>
-            <select value={concoursId} onChange={(e) => setConcoursId(e.target.value)} required className="select select-bordered w-full">
-              <option value="">Sélectionner un concours</option>
-              {concoursList.map(c => (
-                <option key={c.id} value={c.id}>{c.nom}</option>
-              ))}
-            </select>
-          </div> */}
 
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" className="btn btn-ghost text-gray-500" onClick={onClose}>Annuler</button>

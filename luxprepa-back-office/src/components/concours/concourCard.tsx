@@ -5,6 +5,7 @@ import { BiMoney } from 'react-icons/bi';
 import { type Concours } from '../../services/api';
 import { type User, tokenUtils } from '../../services/api';
 import InscriptionsConcoursModal from '../inscriptions/voirInscription';
+
 interface Props {
   concours: Concours;
   onEdit: (c: Concours) => void;
@@ -66,12 +67,14 @@ const ConcoursCard: React.FC<Props> = ({ concours, onEdit, onDelete, onViewInscr
         </div>
 
         <div className="card-actions justify-end mt-4 pt-3 border-t border-gray-100">
-          <button
-            className="btn btn-sm btn-outline gap-2"
-            onClick={() => setShowInscriptions(true)}
-          >
-            Voir les inscriptions
-          </button>
+          {
+            isAdmin && <button
+              className="btn btn-sm btn-outline gap-2"
+              onClick={() => setShowInscriptions(true)}
+            >
+              Voir les inscriptions
+            </button>
+          }
         </div>
         {showInscriptions && (
           <InscriptionsConcoursModal

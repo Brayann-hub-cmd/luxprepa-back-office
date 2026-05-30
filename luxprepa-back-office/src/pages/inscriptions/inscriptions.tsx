@@ -185,7 +185,7 @@ const InscriptionsPage = () => {
                       </td>
                       <td>
                         <div className="flex gap-1.5">
-                          {ins.status === "en_attente" && (
+                          {(ins.status === "en_attente" && isAdmin) && (
                             <button
                               className="btn btn-xs bg-success/10 text-success hover:bg-success hover:text-white border-none gap-1"
                               onClick={() => handleValider(ins.id)}
@@ -198,14 +198,13 @@ const InscriptionsPage = () => {
                               Confirmer
                             </button>
                           )}
-                          <button
+                          {isAdmin ? <button
                             className="btn btn-xs btn-ghost gap-1"
                             onClick={() => setSelectedInscription(ins)}
                           >
                             <MdVisibility size={13} />
                             Voir
-                          </button>
-
+                          </button> : <span>Aucune</span>}
                         </div>
                       </td>
                     </tr>

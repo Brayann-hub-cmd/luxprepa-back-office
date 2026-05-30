@@ -12,20 +12,22 @@ import { Autoplay, Pagination } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/pagination"
 import toast from "react-hot-toast"
-import { inscriptionApi, paiementApi, annonceApi, type Inscription, type Paiement, type Annonce } from "../../services/api"
-
-const activites = [
-  { icon: <MdCheckCircle size={15} />, color: "text-success bg-success/10", text: <><strong>Emma Kouam</strong> — inscription confirmée ENSPD</>, time: "2 min" },
-  { icon: <MdCreditCard size={15} />, color: "text-warning bg-warning/10", text: <><strong>Paiement reçu</strong> — Paul Mbarga 10 000 FCFA</>, time: "4 h" },
-  { icon: <MdCampaign size={15} />, color: "text-info bg-info/10", text: <><strong>Annonce publiée</strong> — Session juin 2026</>, time: "Hier" },
-  { icon: <MdGrade size={15} />, color: "text-secondary bg-secondary/10", text: <><strong>Note ajoutée</strong> — Sophie Ngo Maths 16/20</>, time: "Hier" },
-  { icon: <MdSchool size={15} />, color: "text-success bg-success/10", text: <><strong>Nouvel élève</strong> — Jules Foka inscrit</>, time: "2 j" },
-]
-
+import { inscriptionApi, paiementApi, annonceApi, activiteApi, type Inscription, type Paiement, type Annonce, type Activite } from "../../services/api"
 const typeAnnonceStyle: Record<string, string> = {
   info: "badge-info",
   resultat: "badge-success",
   alerte: "badge-warning",
+}
+
+const getActiviteIcon = (type: string) => {
+  const map: Record<string, { icon: React.ReactNode; colorClass: string }> = {
+    inscription: { icon: <MdCheckCircle size={15} />, colorClass: "text-success bg-success/10" },
+    paiement: { icon: <MdCreditCard size={15} />, colorClass: "text-warning bg-warning/10" },
+    note: { icon: <MdGrade size={15} />, colorClass: "text-secondary bg-secondary/10" },
+    annonce: { icon: <MdCampaign size={15} />, colorClass: "text-info bg-info/10" },
+    compte: { icon: <MdSchool size={15} />, colorClass: "text-success bg-success/10" },
+  }
+  return map[type] || {icon:<MdAssignment size={15}/>}
 }
 // ── Stat Card ──
 interface StatCardProps {
@@ -56,14 +58,14 @@ const StatCard = ({ label, value, sub, icon, colorClass }: StatCardProps) => (
   </div>
 )
 const timeAgo = (date: string) => {
-    const diff = Date.now() - new Date(date).getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return "à l'instant";
-    if (minutes < 60) return `il y a ${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days} j`;
+  const diff = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "à l'instant";
+  if (minutes < 60) return `il y a ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.floor(hours / 24);
+  return `il y a ${days} j`;
 };
 
 const DashboardPage = () => {
@@ -72,14 +74,15 @@ const DashboardPage = () => {
   const [nbAttenteInscription, setNbAttenteInscription] = useState<number>(0)
   const [inscriptionsValides, setInscriptionValides] = useState<number>(0)
   const [paiements, setPaiements] = useState<Paiement[]>([])
-  const [annonces, setAnnonces] = useState<Annonce[]>([]).slice(0,5)
+  const [annonces, setAnnonces] = useState<Annonce[]>([])
+  const [actRecentes, setActRecentes] = useState<Activite[]>([])
   const getNbElevesInscrits = async () => {
     try {
       const response = await inscriptionApi.liste()
       setInscrits(response)
       setNbEleves(response.length)
       setNbAttenteInscription(response.filter(i => i.status === "en_attente").length)
-      setInscriptionValides(response.filter(i => i.status === "validee").length * 100 / response.length)
+      setInscriptionValides(Math.round(response.filter(i => i.status === "validee").length * 100 / response.length))
     } catch (error) {
       if (error instanceof Error) toast.error(error.message)
     }
@@ -97,12 +100,20 @@ const DashboardPage = () => {
   const getAnnonces = async () => {
     try {
       const response = await annonceApi.liste()
-      setAnnonces(response)
+      setAnnonces(response.slice(0, 5))
     } catch (error) {
       if (error instanceof Error) toast.error(error.message)
     }
   }
 
+  const getActiviteRecentes = async () => {
+    try {
+      const response = await activiteApi.liste()
+      setActRecentes(response.slice(0, 5))
+    } catch (error) {
+      if (error instanceof Error) toast.error(error.message)
+    }
+  }
   const compterInscriptionCeMois = (inscriptions: Inscription[]): number => {
     const maintenant = new Date()
     return inscriptions.filter(ins => {
@@ -193,6 +204,7 @@ const DashboardPage = () => {
     getNbElevesInscrits()
     getPaiements()
     getAnnonces()
+    getActiviteRecentes()
   }, [])
 
   const nbElevesCeMois = compterInscriptionCeMois(inscrits)
@@ -307,20 +319,23 @@ const DashboardPage = () => {
               className="text-[15px] font-bold text-base-content mb-4"
               style={{ fontFamily: "'Clash Display', sans-serif" }}
             >
-              Activité récente
+              Activités récentes
             </h3>
             <div className="space-y-3">
-              {activites.map((act, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${act.color}`}>
-                    {act.icon}
+              {actRecentes.map((act, i) => {
+                const { icon, colorClass } = getActiviteIcon(act.type_act)
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                      {icon}
+                    </div>
+                    <p className="flex-1 text-[13px] text-base-content/70">{act.message}</p>
+                    <span className="text-[11px] text-base-content/30 whitespace-nowrap flex-shrink-0">
+                      {act.temps}
+                    </span>
                   </div>
-                  <p className="flex-1 text-[13px] text-base-content/70">{act.text}</p>
-                  <span className="text-[11px] text-base-content/30 whitespace-nowrap flex-shrink-0">
-                    {act.time}
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
